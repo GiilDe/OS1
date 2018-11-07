@@ -324,7 +324,7 @@ typedef struct forbidden_activity_info{
 	int syscall_req_level;
 	int proc_level;
 	int time;
-}log_record;
+} log_record;
 
 
 
