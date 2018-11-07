@@ -19,7 +19,7 @@ int sys_enable_policy(pid_t pid,int size, int password){
         return -EINVAL;
     }
     struct task_struct* info = find_task_by_pid(pid);
-    if(info == NULL){ //TODO check if failure returns NULL
+    if(info == NULL){
         return -ESRCH;
     }
     if(info->policy_enabled == 1){
@@ -32,4 +32,36 @@ int sys_enable_policy(pid_t pid,int size, int password){
         return -ENOMEM;
     }
     return 0;
+}
+
+int sys_disable_policy(pid_t pid, int password){
+    if(pid < 0){
+        return -ESRCH;
+    }
+    if(password != PASSWORD){
+        return -EINVAL;
+    }
+    struct task_struct* info = find_task_by_pid(pid);
+    if(info == NULL){
+        return -ESRCH;
+    }
+    if(info->policy_enabled == 0){
+        return -EINVAL;
+    }
+    kfree(info->log_array);
+    info->policy_enabled = 0;
+}
+
+int sys_set_process_capabilities(pid_t pid, int new_level, int password){
+    if(pid < 0){
+        return -ESRCH;
+    }
+    if(password != PASSWORD){
+        return -EINVAL;
+    }
+    struct task_struct* info = find_task_by_pid(pid);
+    if(info == NULL){
+        return -ESRCH;
+    }
+
 }

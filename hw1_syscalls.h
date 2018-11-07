@@ -11,6 +11,7 @@
 #include "sched.h"
 
 #define SYSCALL_ENABLE_POLICY 243
+#define SYSCALL_DISABLE_POLICY 244
 
 typedef struct forbidden_activity_info{
     int syscall_req_level;
@@ -19,10 +20,6 @@ typedef struct forbidden_activity_info{
 }log_record;
 
 int enable_policy(pid_t pid, int size, int password){
-    if(pid < 0){
-        errno = ESRCH;
-        return -1;
-    }
     int res;
     __asm__(
         "int $0x80;"
@@ -37,5 +34,23 @@ int enable_policy(pid_t pid, int size, int password){
 
     return res;
 }
+
+int disable_policy(pid_t pid, int password){
+    int res;
+    __asm__(
+    "int $0x80;"
+    : "=a" (res)
+    : "0" (SYSCALL_DISABLE_POLICY), "b" (pid), "c" (password)
+    : "memory"
+    );
+    if((res) < 0) {
+        errno = (-res);
+        return -1;
+    }
+
+    return res;
+}
+
+
 
 #endif //OS1_HW1_SYSCALLS_H
