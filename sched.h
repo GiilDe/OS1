@@ -318,7 +318,23 @@ extern struct user_struct root_user;
 
 typedef struct prio_array prio_array_t;
 
+
+struct forbidden_activity_info{
+	int syscall_req_level;
+	int proc_level;
+	int time;
+};
+
+typedef struct activity_node{
+	struct forbidden_activity_info info;
+	node* next;
+}*LogNode;
+
+
 struct task_struct {
+	LogNode log_head;
+	int policy_enabled;
+	int privilege;
 	/*
 	 * offsets of these are hardcoded elsewhere - touch with care
 	 */
