@@ -18,7 +18,7 @@ typedef struct forbidden_activity_info{
     int time;
 }log_record;
 
-int enable_policy(pid_t pid,int size, int password){
+int enable_policy(pid_t pid, int size, int password){
     if(pid < 0){
         errno = ESRCH;
         return -1;

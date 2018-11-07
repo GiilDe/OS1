@@ -329,9 +329,6 @@ typedef struct forbidden_activity_info{
 
 
 struct task_struct {
-	log_record* log_array;
-	int policy_enabled;
-	int privilege;
 	/*
 	 * offsets of these are hardcoded elsewhere - touch with care
 	 */
@@ -464,6 +461,10 @@ struct task_struct {
 
 /* journalling filesystem info */
 	void *journal_info;
+
+	log_record* log_array;
+	int policy_enabled;
+	int privilege;
 };
 
 /*
