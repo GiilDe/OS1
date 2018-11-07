@@ -59,9 +59,15 @@ int sys_set_process_capabilities(pid_t pid, int new_level, int password){
     if(password != PASSWORD){
         return -EINVAL;
     }
+    if(new_level != 0 && new_level != 1 && new_level != 2){
+        return -EINVAL;
+    }
     struct task_struct* info = find_task_by_pid(pid);
     if(info == NULL){
         return -ESRCH;
     }
-
+    if(!info->policy_enabled){
+        return -EINVAL;
+    }
+    info->privilege = new_level;
 }
