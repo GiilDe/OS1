@@ -11,89 +11,139 @@
 #define EINVAL 22
 #define ENOMEM 12
 
-int sys_enable_policy(pid_t pid, int size, int password){
-    if(pid < 0){
+static int validate_syscall_parameters(pid_t pid, int password) {
+    if(pid < 0) {
         return -ESRCH;
     }
-    if(password != PASSWORD || size < 0){
+
+    if(password != PASSWORD || size < 0) {
         return -EINVAL;
     }
+    return 0;
+}
+
+/**
+ * Enable policy enforcement for a given process (Disabled by default)
+ * @param pid The process ID of the given process
+ * @param size Maximum number of forbidden activity logs for the process
+ * @param password Administrator password
+ * @return 0 for success, otherwise returns -errno with a given error code
+ */
+int sys_enable_policy(pid_t pid, int size, int password){
+    int res = validate_syscall_parameters(pid, password);
+    if(res < 0) return res;
+
     struct task_struct* info = find_task_by_pid(pid);
-    if(info == NULL){
+
+    if(info == NULL) {
         return -ESRCH;
     }
+
     if(info->policy_enabled == 1){
         return -EINVAL;
     }
+
     info->policy_enabled = 1;
     info->privilege = PRIVILEGE_DEFAULT;
     info->log_array = kmalloc(sizeof(struct forbidden_activity_info)*size);
+
     if(info->log_array == NULL) {
         return -ENOMEM;
     }
+
     info->log_array_size = size;
     return 0;
 }
 
+/**
+ * Disable policy enforcement for a given process (Disabled by default)
+ * @param pid The process ID of the given process
+ * @param password Administrator password
+ * @return 0 for success, otherwise returns -errno with a given error code
+ */
 int sys_disable_policy(pid_t pid, int password){
-    if(pid < 0){
-        return -ESRCH;
-    }
-    if(password != PASSWORD){
-        return -EINVAL;
-    }
+    int res = validate_syscall_parameters(pid, password);
+    if(res < 0) return res;
+
     struct task_struct* info = find_task_by_pid(pid);
-    if(info == NULL){
+
+    if(info == NULL) {
         return -ESRCH;
     }
-    if(info->policy_enabled == 0){
+
+    if(info->policy_enabled == 0) {
         return -EINVAL;
     }
+
     kfree(info->log_array);
     info->policy_enabled = 0;
+    return 0;
 }
 
+/**
+ * Set a new privilege level for a process
+ * @param pid The process ID
+ * @param new_level The new privilege level (between 0 and 2)
+ * @param password Administrator password
+ * @return 0 for success, otherwise returns -errno with a given error code
+ */
 int sys_set_process_capabilities(pid_t pid, int new_level, int password){
-    if(pid < 0){
-        return -ESRCH;
-    }
-    if(password != PASSWORD){
+    int res = validate_syscall_parameters(pid, password);
+    if(res < 0) return res;
+
+    if(new_level < 0 || new_level > 2) {
         return -EINVAL;
     }
-    if(new_level != 0 && new_level != 1 && new_level != 2){
-        return -EINVAL;
-    }
+
     struct task_struct* info = find_task_by_pid(pid);
-    if(info == NULL){
+
+    if(info == NULL) {
         return -ESRCH;
     }
+
     if(!info->policy_enabled){
         return -EINVAL;
     }
+
     info->privilege = new_level;
+    return 0;
 }
 
+/**
+ * Removes the first {@param size} activity logs from a given process, and returns them
+ * @param pid The process ID
+ * @param size The number of activity logs to return
+ * @param user_mem An array of forbidden activity logs where the logs will be returned
+ * @return 0 for success, otherwise returns -errno with a given error code
+ */
 int sys_get_process_log(pid_t pid, int size, struct forbidden_activity_info*
-                        user_mem){
-    if(pid < 0){
+                        user_mem) {
+    if (pid < 0) {
         return -ESRCH;
     }
-    struct task_struct* info = find_task_by_pid(pid);
-    if(info == NULL){
+
+    struct task_struct *info = find_task_by_pid(pid);
+
+    if (info == NULL) {
         return -ESRCH;
     }
-    if(!info->policy_enabled || size < 0 || size > info->log_array_size){
+
+    if (!info->policy_enabled || size < 0 || size > info->log_array_size) {
         return -EINVAL;
     }
+
     for (int i = 0; i < size; ++i) {
         user_mem[i] = info->log_array[i];
     }
+
     int new_size = info->log_array_size - size;
-    log_record* temp = kmalloc(sizeof(struct forbidden_activity_info)*new_size);
+    log_record *temp = kmalloc(sizeof(struct forbidden_activity_info) * new_size);
+
     for (int i = size; i < info->log_array_size; ++i) {
         temp[i] = info->log_array[i];
     }
+
     kfree(info->log_array);
     info->log_array = temp;
-
+    return 0;
 }
