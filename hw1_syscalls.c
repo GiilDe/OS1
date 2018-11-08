@@ -90,10 +90,10 @@ int sys_get_process_log(pid_t pid, int size, struct forbidden_activity_info*
     }
     int new_size = info->log_array_size - size;
     log_record* temp = kmalloc(sizeof(struct forbidden_activity_info)*new_size);
+    //TODO what to return if temp is null
     for (int i = size; i < info->log_array_size; ++i) {
         temp[i] = info->log_array[i];
     }
     kfree(info->log_array);
     info->log_array = temp;
-
 }

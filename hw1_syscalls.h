@@ -12,6 +12,9 @@
 #define SYSCALL_ENABLE_POLICY 243
 #define SYSCALL_DISABLE_POLICY 244
 #define SYSCALL_SET_PROCESS_CAPABILITIES 245
+#define SYSCALL_GET_PROCESS_LOG 246
+
+
 
 
 typedef struct forbidden_activity_info{
@@ -58,6 +61,23 @@ int set_process_capabilities(pid_t pid, int new_level, int password){
     "int $0x80;"
     : "=a" (res)
     : "0" (SYSCALL_SET_PROCESS_CAPABILITIES), "b" (pid), "c" (new_level), "d" (password)
+    : "memory"
+    );
+    if((res) < 0) {
+        errno = (-res);
+        return -1;
+    }
+
+    return res;
+}
+
+int get_process_log(pid_t pid, int size, struct forbidden_activity_info*
+                    user_mem){
+    int res;
+    __asm__(
+    "int $0x80;"
+    : "=a" (res)
+    : "0" (SYSCALL_GET_PROCESS_LOG), "b" (pid), "c" (size), "d" (user_mem)
     : "memory"
     );
     if((res) < 0) {
