@@ -8,10 +8,11 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "sched.h"
 
 #define SYSCALL_ENABLE_POLICY 243
 #define SYSCALL_DISABLE_POLICY 244
+#define SYSCALL_SET_PROCESS_CAPABILITIES 245
+
 
 typedef struct forbidden_activity_info{
     int syscall_req_level;
@@ -41,6 +42,22 @@ int disable_policy(pid_t pid, int password){
     "int $0x80;"
     : "=a" (res)
     : "0" (SYSCALL_DISABLE_POLICY), "b" (pid), "c" (password)
+    : "memory"
+    );
+    if((res) < 0) {
+        errno = (-res);
+        return -1;
+    }
+
+    return res;
+}
+
+int set_process_capabilities(pid_t pid, int new_level, int password){
+    int res;
+    __asm__(
+    "int $0x80;"
+    : "=a" (res)
+    : "0" (SYSCALL_SET_PROCESS_CAPABILITIES), "b" (pid), "c" (new_level), "d" (password)
     : "memory"
     );
     if((res) < 0) {

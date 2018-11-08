@@ -11,7 +11,7 @@
 #define EINVAL 22
 #define ENOMEM 12
 
-int sys_enable_policy(pid_t pid,int size, int password){
+int sys_enable_policy(pid_t pid, int size, int password){
     if(pid < 0){
         return -ESRCH;
     }
@@ -31,6 +31,7 @@ int sys_enable_policy(pid_t pid,int size, int password){
     if(info->log_array == NULL) {
         return -ENOMEM;
     }
+    info->log_array_size = size;
     return 0;
 }
 
@@ -70,4 +71,29 @@ int sys_set_process_capabilities(pid_t pid, int new_level, int password){
         return -EINVAL;
     }
     info->privilege = new_level;
+}
+
+int sys_get_process_log(pid_t pid, int size, struct forbidden_activity_info*
+                        user_mem){
+    if(pid < 0){
+        return -ESRCH;
+    }
+    struct task_struct* info = find_task_by_pid(pid);
+    if(info == NULL){
+        return -ESRCH;
+    }
+    if(!info->policy_enabled || size < 0 || size > info->log_array_size){
+        return -EINVAL;
+    }
+    for (int i = 0; i < size; ++i) {
+        user_mem[i] = info->log_array[i];
+    }
+    int new_size = info->log_array_size - size;
+    log_record* temp = kmalloc(sizeof(struct forbidden_activity_info)*new_size);
+    for (int i = size; i < info->log_array_size; ++i) {
+        temp[i] = info->log_array[i];
+    }
+    kfree(info->log_array);
+    info->log_array = temp;
+
 }
