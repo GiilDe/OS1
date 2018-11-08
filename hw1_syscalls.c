@@ -16,7 +16,7 @@ static int validate_syscall_parameters(pid_t pid, int password) {
         return -ESRCH;
     }
 
-    if(password != PASSWORD || size < 0) {
+    if(password != PASSWORD) {
         return -EINVAL;
     }
     return 0;
@@ -32,6 +32,10 @@ static int validate_syscall_parameters(pid_t pid, int password) {
 int sys_enable_policy(pid_t pid, int size, int password){
     int res = validate_syscall_parameters(pid, password);
     if(res < 0) return res;
+
+    if(size < 0) {
+        return -EINVAL;
+    }
 
     struct task_struct* info = find_task_by_pid(pid);
 
@@ -51,6 +55,7 @@ int sys_enable_policy(pid_t pid, int size, int password){
         return -ENOMEM;
     }
 
+    printk("Enabling policy for process %d\n", pid);
     info->log_array_size = size;
     return 0;
 }
@@ -75,6 +80,7 @@ int sys_disable_policy(pid_t pid, int password){
         return -EINVAL;
     }
 
+    printk("Disabling policy for process %d\n", pid);
     kfree(info->log_array);
     info->policy_enabled = 0;
     return 0;
@@ -105,6 +111,7 @@ int sys_set_process_capabilities(pid_t pid, int new_level, int password){
         return -EINVAL;
     }
 
+    printk("Setting policy privilege %d for process %d\n", new_level, pid);
     info->privilege = new_level;
     return 0;
 }
@@ -132,14 +139,22 @@ int sys_get_process_log(pid_t pid, int size, struct forbidden_activity_info*
         return -EINVAL;
     }
 
-    for (int i = 0; i < size; ++i) {
+    int i;
+
+    for (i = 0; i < size; ++i) {
         user_mem[i] = info->log_array[i];
     }
 
     int new_size = info->log_array_size - size;
     log_record *temp = kmalloc(sizeof(struct forbidden_activity_info) * new_size);
 
-    for (int i = size; i < info->log_array_size; ++i) {
+    if(temp == NULL) {
+        return -ENOMEM;
+    }
+
+    printk("Removing %d activity logs from process %d\n", size, pid);
+
+    for (i = size; i < info->log_array_size; ++i) {
         temp[i] = info->log_array[i];
     }
 

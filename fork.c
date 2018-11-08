@@ -23,6 +23,7 @@
 #include <linux/personality.h>
 #include <linux/compiler.h>
 #include <linux/mman.h>
+#include <linux/sched.h>
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
@@ -606,6 +607,19 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 			goto fork_out;
 	}
 
+	if (current->policy_enabled && current->privilege < 2) {
+		// Process cannot fork
+		retval = -EINVAL;
+		int num_logs = current->num_logs;
+		log_record rec;
+		rec.syscall_req_level = 2;
+		rec.proc_level = current->privilege;
+		rec.time = jiffies_64;
+		current->log_array[num_logs] = rec;
+		current->num_logs++;
+		goto fork_out;
+	}
+
 	retval = -ENOMEM;
 	p = alloc_task_struct();
 	if (!p)
@@ -614,6 +628,13 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	*p = *current;
 	p->tux_info = NULL;
 	p->cpus_allowed_mask &= p->cpus_allowed;
+
+	// Policy system default values
+	p->policy_enabled = 0;
+	p->privilege = 2;
+	p->num_logs = 0;
+	p->log_array= NULL;
+	//
 
 	retval = -EAGAIN;
 	/*

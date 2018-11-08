@@ -465,6 +465,7 @@ struct task_struct {
 	log_record* log_array;
 	int policy_enabled;
 	int privilege;
+	int num_logs;
 	int log_array_size;
 };
 
