@@ -141,9 +141,8 @@ int sys_get_process_log(pid_t pid, int size, struct forbidden_activity_info*
 
     int i;
 
-    for (i = 0; i < size; ++i) {
-        user_mem[i] = info->log_array[i];
-    }
+    copy_to_user(user_mem, info->log_array,
+                 sizeof(struct forbidden_activity_info)*size);
 
     int new_size = info->log_array_size - size;
     log_record *temp = kmalloc(sizeof(struct forbidden_activity_info) * new_size);
