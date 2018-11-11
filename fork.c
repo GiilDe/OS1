@@ -588,7 +588,7 @@ static inline void copy_flags(unsigned long clone_flags, struct task_struct *p)
 int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	    struct pt_regs *regs, unsigned long stack_size)
 {
-	//int retval;
+	int retval;
 	unsigned long flags;
 	struct task_struct *p;
 	struct completion vfork;
