@@ -1372,7 +1372,6 @@ out_unlock:
 asmlinkage long sys_sched_yield(void)
 {
     if (current->policy_enabled && current->privilege < 1) {
-        // Process cannot fork
         int num_logs = current->num_logs;
         log_record rec;
         rec.syscall_req_level = 2;
