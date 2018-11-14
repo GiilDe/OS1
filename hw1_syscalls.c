@@ -3,6 +3,8 @@
 //
 #include<linux/kernel.h>
 #include<linux/sched.h>
+#include <asm/uaccess.h>
+
 
 #define PASSWORD 234123
 #define PRIVILEGE_DEFAULT 2
@@ -67,8 +69,7 @@ int sys_enable_policy(pid_t pid, int size, int password){
  * @return 0 for success, otherwise returns -errno with a given error code
  */
 int sys_disable_policy(pid_t pid, int password){
-    int res = validate_syscall_parameters(pid, password);
-    if(res < 0) return res;
+    if(pid < 0) return -ESRCH;
 
     struct task_struct* info = find_task_by_pid(pid);
 
@@ -77,6 +78,10 @@ int sys_disable_policy(pid_t pid, int password){
     }
 
     if(info->policy_enabled == 0) {
+        return -EINVAL;
+    }
+
+    if(password != PASSWORD) {
         return -EINVAL;
     }
 
