@@ -7,16 +7,8 @@
 #include<linux/slab.h>
 #include<asm/uaccess.h>
 
-
 #define PASSWORD 234123
 #define PRIVILEGE_DEFAULT 2
-
-static int validate_syscall_parameters(pid_t pid, int password) {
-    if(pid < 0) {
-        return -ESRCH;
-    }
-    return 0;
-}
 
 /**
  * Enable policy enforcement for a given process (Disabled by default)
