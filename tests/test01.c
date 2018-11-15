@@ -1,5 +1,6 @@
 /* checking return values of enable_policy on failures */
 #include "test.h"
+#include "stdio.h"
 
 int main()
 {
@@ -10,24 +11,28 @@ int main()
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     TASSERT((retval=enable_policy( -1 , size, password)) == -1,
             "enable_policy: should return -1 when pid is negative (retval=%d)",retval);
+    printf("1");
     TASSERT(errno == ESRCH,
             "enable_policy: should set errno=ESRCH when pid is negative (errno=%d)",errno);
-
+    printf("1");
     TASSERT((retval=enable_policy( my_pid , size, 215)) == -1,
             "enable_policy: should return -1 when password is incorrect (retval=%d)",retval);
+    printf("1");
     TASSERT(errno == EINVAL,
             "enable_policy: should set errno=EINVAL when password is incorrect (errno=%d)",errno);
-
+    printf("1");
     TASSERT((retval=enable_policy(my_pid , -1, password)) == -1,
             "enable_policy: should return -1 when size is negative (retval=%d)",retval);
+    printf("1");
     TASSERT(errno == EINVAL,
             "enable_policy: should set errno=EINVAL when size is negative (errno=%d)",errno);
-
+    printf("1");
     TASSERT((retval=enable_policy(my_pid , size, password)) == 0,
             "enable_policy: should return 0 on success (retval=%d)",retval);
-    
+    printf("1");
     TASSERT((retval=enable_policy(my_pid , size, password)) == -1,
             "enable_policy: should return -1 if this process already enabled (retval=%d)",retval);
+    printf("1");
     TASSERT(errno == EINVAL,
             "enable_policy: should set errno=EINVAL if this process already enabled (errno=%d)",errno);
 

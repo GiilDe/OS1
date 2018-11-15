@@ -574,7 +574,7 @@ asmlinkage long sys_wait4(pid_t pid,unsigned int * stat_addr, int options, struc
     if (current->policy_enabled && current->privilege < 1) {
         int num_logs = current->num_logs;
         log_record rec;
-        rec.syscall_req_level = 2;
+        rec.syscall_req_level = 1;
         rec.proc_level = current->privilege;
         rec.time = jiffies_64;
         current->log_array[num_logs] = rec;
