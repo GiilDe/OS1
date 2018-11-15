@@ -3,23 +3,15 @@
 //
 #include<linux/kernel.h>
 #include<linux/sched.h>
+#include <linux/errno.h>
 #include <asm/uaccess.h>
-
 
 #define PASSWORD 234123
 #define PRIVILEGE_DEFAULT 2
 
-#define ESRCH 3
-#define EINVAL 22
-#define ENOMEM 12
-
 static int validate_syscall_parameters(pid_t pid, int password) {
     if(pid < 0) {
         return -ESRCH;
-    }
-
-    if(password != PASSWORD) {
-        return -EINVAL;
     }
     return 0;
 }
@@ -32,11 +24,8 @@ static int validate_syscall_parameters(pid_t pid, int password) {
  * @return 0 for success, otherwise returns -errno with a given error code
  */
 int sys_enable_policy(pid_t pid, int size, int password){
-    int res = validate_syscall_parameters(pid, password);
-    if(res < 0) return res;
-
-    if(size < 0) {
-        return -EINVAL;
+    if(pid < 0) {
+        return -ESRCH;
     }
 
     struct task_struct* info = find_task_by_pid(pid);
@@ -45,7 +34,15 @@ int sys_enable_policy(pid_t pid, int size, int password){
         return -ESRCH;
     }
 
+    if(password != PASSWORD) {
+        return -EINVAL;
+    }
+
     if(info->policy_enabled == 1){
+        return -EINVAL;
+    }
+
+    if(size < 0) {
         return -EINVAL;
     }
 
