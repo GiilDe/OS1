@@ -155,7 +155,7 @@ int sys_get_process_log(pid_t pid, int size, struct forbidden_activity_info*
 
     printk("Removing %d activity logs from process %d\n", size, pid);
     int i;
-    for (i = size; i < info->log_array_size; ++i) {
+    for (i = size; i < info->num_logs; ++i) {
         temp[i] = info->log_array[i];
     }
 
