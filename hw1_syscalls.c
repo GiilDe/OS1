@@ -5,6 +5,7 @@
 #include<linux/sched.h>
 #include<linux/errno.h>
 #include<linux/slab.h>
+#include<linux/string.h>
 #include<asm/uaccess.h>
 
 #define PASSWORD 234123
@@ -146,22 +147,24 @@ int sys_get_process_log(pid_t pid, int size, struct forbidden_activity_info*
     copy_to_user(user_mem, info->log_array,
                  sizeof(struct forbidden_activity_info)*size);
 
-    int new_size = info->log_array_size - size;
-    log_record *temp = kmalloc(sizeof(struct forbidden_activity_info)*new_size, GFP_KERNEL);
 
-    if(temp == NULL) {
-        return -ENOMEM;
-    }
+    // int new_size = info->log_array_size - size;
+    // log_record *temp = kmalloc(sizeof(struct forbidden_activity_info)*new_size, GFP_KERNEL);
+
+    // if(temp == NULL) {
+    //     return -ENOMEM;
+    // }
 
     printk("Removing %d activity logs from process %d\n", size, pid);
-    int i;
-    for (i = size; i < info->num_logs; ++i) {
-        temp[i] = info->log_array[i];
-    }
+    // int i;
+    // for (i = size; i < info->num_logs; ++i) {
+    //     temp[i] = info->log_array[i];
+    // }
 
-    kfree(info->log_array);
-    info->log_array = temp;
+    // kfree(info->log_array);
+    // info->log_array = temp;
     info->num_logs -= size;
-    info->log_array_size = new_size;
+    memcpy(info->log_array, (info->log_array) + size, sizeof(struct forbidden_activity_info)*info->num_logs);
+    // info->log_array_size = new_size;
     return 0;
 }
